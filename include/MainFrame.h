@@ -30,6 +30,8 @@ private:
 	void OnServerEvent(wxSocketEvent& evt);
 	void OnClientConnected(wxSocketEvent& evt);
 
+	wxString SocketErrorString(wxSocketError err);
+
 	static MainFrame* ref;
 
 public:
