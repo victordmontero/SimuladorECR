@@ -54,19 +54,24 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& 
 
 	wxIntegerValidator<short> validator;
 
-	txtIP = new wxTextCtrl(this, ID_IPTXT, "192.168.3.68", wxPoint(10, 20), wxSize(100, 20));
+	txtIP = new wxTextCtrl(this, ID_IPTXT, "192.168.3.63", wxPoint(10, 20), wxSize(100, 20));
 	txtPort = new wxTextCtrl(this, ID_PORTTXT, "2018", wxPoint(110, 20), wxSize(100, 20), 0L, validator);
+	txtFolio = new wxTextCtrl(this, ID_FOLIO_NO, "00000001", wxPoint(210, 20), wxSize(100, 20));
 	txtResult = new wxTextCtrl(this, wxID_ANY, "Results", wxPoint(10, 50), wxSize(600, 300), wxTE_MULTILINE | wxTE_READONLY | wxTE_PROCESS_TAB);
 
 	wxButton* btnStartServer = new wxButton(toolBar, ID_START_SERVER, "Escuchar", wxDefaultPosition, wxSize(100, 20));
 	wxButton* btnStopServer = new wxButton(toolBar, ID_STOP_SERVER, "Detener", wxDefaultPosition, wxSize(100, 20));
+	wxButton* btnSendPreComp = new wxButton(toolBar, ID_SEND_PRECOMP, "Send PreComp", wxDefaultPosition, wxSize(100, 20));
+
 	toolBar->AddControl(btnStartServer);
 	toolBar->AddControl(btnStopServer);
+	toolBar->AddControl(btnSendPreComp);
 
 	Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
 	Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
 	Bind(wxEVT_BUTTON, &MainFrame::OnStartServer, this, ID_START_SERVER);
 	Bind(wxEVT_BUTTON, &MainFrame::OnStopServer, this, ID_STOP_SERVER);
+	Bind(wxEVT_BUTTON, &MainFrame::OnSendPreComp, this, ID_SEND_PRECOMP);
 	Bind(wxEVT_SOCKET, &MainFrame::OnClientConnected, this, ID_CONNECTED);
 	Bind(wxEVT_SOCKET, &MainFrame::OnServerEvent, this, ID_SERVER);
 
@@ -212,15 +217,18 @@ void MainFrame::OnServerEvent(wxSocketEvent& evt)
 	server->Destroy();
 	server = NULL;
 
-	if (std::strcmp(vec.back(), "CT01") == 0)
+	wxString trxType = vec[vec.size() - 2];
+
+	if (trxType.CompareTo(wxT("CT01")) == 0)
 	{
+		logStream << "Cancelling\n";
 		endTraceText.Prepend(dashesString);
 		endTraceText.Append(dashesString);
 		logStream << '\n' << endTraceText;
 		evt.Skip();
 		return;
 	}
-	else if (std::strcmp(vec.back(), "VC01") == 0)
+	else if (trxType.CompareTo(wxT("VC01")) == 0)
 	{
 		if (std::strcmp(vec[3], "02") == 0)
 		{
@@ -338,11 +346,121 @@ void MainFrame::OnServerEvent(wxSocketEvent& evt)
 		incommingClient->Destroy();
 
 	}
-	else if (std::strcmp(vec.back(), "VC02") == 0)
+	else if (trxType.CompareTo(wxT("VC02")) == 0)
 	{
+		wxIPV4address address;
+		address.Hostname(txtIP->GetValue());
+		address.Service(7060);
+		wxSocketClient* client = new wxSocketClient();
+
+		if (!client->Connect(address, true))
+		{
+			wxString err = SocketErrorString(client->LastError());
+			wxMessageBox("Connection Failed: " + err, "Connection failed", 5L, this);
+			SetStatusText("Could nost Connect");
+			client->Destroy();
+			return;
+		}
+
+		buf[0] = ENQ;
+		buf[1] = 0x00;
+		client->Write(buf, 1);
+
+		//Reading ACK
+		buf[0] = buf[1] = 0x00;
+		client->Read(buf, 1);
+
+		client->Close();
+		client->Destroy();
+
+		if (!client->Connect(address, true))
+		{
+			if (client->Error())
+			{
+				wxString err = SocketErrorString(client->LastError());
+				wxMessageBox("Connection Failed: " + err, "Connection failed", 5L, this);
+			}
+			client->Destroy();
+			return;
+		}
+
+		buf[0] = SYN;
+		buf[1] = 0x00;
+		client->Write(buf, 1);
+
+		client->Close();
+		client->Destroy();
+		client = NULL;
+
+		unsigned long port = 0;
+		txtPort->GetValue().ToULong(&port);
+
+		wxIPV4address otherAddress;
+		otherAddress.AnyAddress();
+		otherAddress.Service(port);
+		wxSocketServer* newServer = new wxSocketServer(otherAddress);
+
+		if (!newServer->IsOk())
+			return;
+
+		wxSocketBase* incommingClient = newServer->Accept();
+
+		buf[0] = 0x00;
+		incommingClient->Read(buf, 1);
+		logStream << "Receiving ENQ" << '\n';
+		hexDump("Received", buf, 1, logStream);
+
+		memset(messageBuf, 0x00, sizeof(messageBuf));
+
+		vec2.push_back("PR00");
+		vec2.push_back(txtFolio->GetValue());
+		vec2.push_back("000000000500");
+		vec2.push_back("000000000090");
+		vec2.push_back("000000000000");
+		vec2.push_back("000056");
+
+		int len = 0;
+		for (std::vector<wxString>::iterator it = vec2.begin(); it != vec2.end(); it++)
+		{
+			memcpy(&messageBuf[len], (*it).c_str(), (*it).Length());
+			len += (*it).Length();
+			messageBuf[len] = FS;
+			len++;
+		}
+
+		hexDump("Sending MessageBuf", messageBuf, len - 1, logStream);
+		incommingClient->Write(messageBuf, len - 1);
+
+		//Receiving ACK
+		buf[0] = buf[1] = 0x00;
+		incommingClient->Read(buf, 1);
+		hexDump("Received ACK", buf, 1, logStream);
+
+		memset(messageBuf, 0x00, sizeof(messageBuf));
+		incommingClient->Read(messageBuf, sizeof(messageBuf));
+		hexDump("Received POS Response", messageBuf, sizeof(messageBuf), logStream);
+
+		buf[0] = ACK;
+		buf[1] = 0x00;
+		incommingClient->Write(buf, 1);
+
+		//Receving EOT
+		buf[0] = buf[1] = 0x00;
+		incommingClient->Read(buf, 1);
+		logStream << "Received: " << buf << '\n';
+		hexDump("Received EOT", buf, 1, logStream);
+
+		//Receiving EOM
+		buf[0] = buf[1] = 0x00;
+		incommingClient->Read(buf, 1);
+		logStream << "Received: " << buf << '\n';
+		hexDump("Received EOM", buf, 1, logStream);
+
+		incommingClient->Close();
+		incommingClient->Destroy();
 
 	}
-	else if (std::strcmp(vec.back(), "VC03") == 0)
+	else if (std::strcmp(vec[vec.size() - 2], "VC03") == 0)
 	{
 		endTraceText.Prepend(dashesString);
 		endTraceText.Append(dashesString);
@@ -372,11 +490,13 @@ void MainFrame::OnClientConnected(wxSocketEvent& evt)
 	case wxSOCKET_INPUT:
 		clientSock->Read(buf, 1);
 		txtResult->WriteText(wxString(buf));
+		clientSock->Close();
 		clientSock->Destroy();
 		SetStatusText("Stopped Listening");
 		break;
 	case wxSOCKET_LOST:
 		SetStatusText("Stopped Listening");
+		clientSock->Close();
 		clientSock->Destroy();
 		break;
 	default:
@@ -412,6 +532,143 @@ wxString MainFrame::SocketErrorString(wxSocketError err)
 	default:
 		return wxT("Error not listed");
 	}
+}
+
+void MainFrame::OnSendPreComp(wxCommandEvent& event)
+{
+	std::vector<char*> vec;
+	std::vector<wxString> vec2;
+	std::ostream logStream(txtResult);
+	wxString dashesString(10, '-');
+	wxString endTraceText = "EndTrace";
+	wxIPV4address clientAddr;
+	char buf[2] = { 0 };
+	char messageBuf[257] = { 0 };
+
+	wxIPV4address address;
+	address.Hostname(txtIP->GetValue());
+	address.Service(7060);
+	wxSocketClient* client = new wxSocketClient();
+
+	txtResult->Clear();
+	logStream << "Connecting to [" << txtIP->GetValue().ToStdString() << ":7060]......\n";
+	if (!client->Connect(address, true))
+	{
+		wxString err = SocketErrorString(client->LastError());
+		wxMessageBox("Connection Failed: " + err, "Connection failed", 5L, this);
+		SetStatusText("Could nost Connect");
+		client->Close();
+		client->Destroy();
+		return;
+	}
+	logStream << "Connected\n";
+
+	logStream << "Sending ENQ\n";
+	buf[0] = ENQ;
+	buf[1] = 0x00;
+	client->Write(buf, 1);
+
+	logStream << "Reading ACK\n";
+	//Reading ACK
+	buf[0] = buf[1] = 0x00;
+	client->Read(buf, 1);
+
+	client->Close();
+	client->Destroy();
+
+	logStream << "Connecting to [" << txtIP->GetValue().ToStdString() << ":7060]......\n";
+	if (!client->Connect(address, true))
+	{
+		if (client->Error())
+		{
+			wxString err = SocketErrorString(client->LastError());
+			wxMessageBox("Connection Failed: " + err, "Connection failed", 5L, this);
+		}
+		client->Close();
+		client->Destroy();
+		return;
+	}
+	logStream << "Connected\n";
+
+	logStream << "Sending SYN\n";
+	buf[0] = SYN;
+	buf[1] = 0x00;
+	client->Write(buf, 1);
+
+	client->Close();
+	client->Destroy();
+	client = NULL;
+
+	unsigned long port = 0;
+	txtPort->GetValue().ToULong(&port);
+
+	wxIPV4address otherAddress;
+	otherAddress.AnyAddress();
+	otherAddress.Service(port);
+	wxSocketServer* newServer = new wxSocketServer(otherAddress);
+
+	if (!newServer->IsOk())
+		return;
+	logStream << "Converting to Server......\n";
+	wxSocketBase* incommingClient = newServer->Accept();
+
+	buf[0] = 0x00;
+	incommingClient->Read(buf, 1);
+	logStream << "Receiving ENQ" << '\n';
+	hexDump("Received", buf, 1, logStream);
+
+	memset(messageBuf, 0x00, sizeof(messageBuf));
+
+	vec2.clear();
+	if (txtFolio->GetValue().Length() == 8)
+		vec2.push_back("PR01");
+	else
+		vec2.push_back("PR05");
+	vec2.push_back(txtFolio->GetValue());
+	vec2.push_back("000000000500");
+
+	int len = 0;
+	for (std::vector<wxString>::iterator it = vec2.begin(); it != vec2.end(); it++)
+	{
+		memcpy(&messageBuf[len], (*it).c_str(), (*it).Length());
+		len += (*it).Length();
+		messageBuf[len] = FS;
+		len++;
+	}
+
+	hexDump("Sending MessageBuf", messageBuf, len - 1, logStream);
+	incommingClient->Write(messageBuf, len - 1);
+
+	//Receiving ACK
+	buf[0] = buf[1] = 0x00;
+	incommingClient->Read(buf, 1);
+	hexDump("Received ACK", buf, 1, logStream);
+
+	memset(messageBuf, 0x00, sizeof(messageBuf));
+	incommingClient->Read(messageBuf, sizeof(messageBuf));
+	hexDump("Received POS Response", messageBuf, sizeof(messageBuf), logStream);
+
+	buf[0] = ACK;
+	buf[1] = 0x00;
+	incommingClient->Write(buf, 1);
+
+	//Receving EOT
+	buf[0] = buf[1] = 0x00;
+	incommingClient->Read(buf, 1);
+	logStream << "Received: " << buf << '\n';
+	hexDump("Received EOT", buf, 1, logStream);
+
+	//Receiving EOM
+	buf[0] = buf[1] = 0x00;
+	incommingClient->Read(buf, 1);
+	logStream << "Received: " << buf << '\n';
+	hexDump("Received EOM", buf, 1, logStream);
+
+	incommingClient->Close();
+	incommingClient->Destroy();
+
+	newServer->Close();
+	newServer->Destroy();
 }
 
 static void parseMsg(const char* message, unsigned length, std::vector<char*>& vec)
@@ -596,7 +853,7 @@ SOCKET SetAsServer(SOCKET* sock, std::ostream& logout)
 	}
 
 	std::cout << "Acepting...." << std::endl;
-	if ((new_sock = accept(*sock, (sockaddr*)& clientSockAddr, &addresslen)) < 0)
+	if ((new_sock = accept(*sock, (sockaddr*)&clientSockAddr, &addresslen)) < 0)
 	{
 		logout << "Error al aceptar " << WSAGetLastError() << std::endl;
 		if (WSAGetLastError() != WSAEWOULDBLOCK)

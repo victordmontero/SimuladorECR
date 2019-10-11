@@ -12,8 +12,10 @@ enum EventsIds
 {
 	ID_START_SERVER,
 	ID_STOP_SERVER,
+	ID_SEND_PRECOMP,
 	ID_IPTXT,
 	ID_PORTTXT,
+	ID_FOLIO_NO,
 	ID_EVENT_COMPLETED,
 	ID_SERVER,
 	ID_CONNECTED
@@ -26,6 +28,7 @@ private:
 	void OnAbout(wxCommandEvent& event);
 	void OnStartServer(wxCommandEvent& event);
 	void OnStopServer(wxCommandEvent& event);
+	void OnSendPreComp(wxCommandEvent& event);
 
 	void OnServerEvent(wxSocketEvent& evt);
 	void OnClientConnected(wxSocketEvent& evt);
@@ -41,6 +44,7 @@ public:
 	wxButton* btnSend = NULL;
 	wxTextEntry* txtIP = NULL;
 	wxTextEntry* txtPort = NULL;
+	wxTextEntry* txtFolio = NULL;
 	wxTextCtrl* txtResult = NULL;
 	wxToolBar* toolBar = NULL;
 
