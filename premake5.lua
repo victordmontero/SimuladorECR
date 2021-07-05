@@ -28,7 +28,7 @@ project "SimuladorECR"
   filter  "platforms:Win32"
     defines{"WIN32"}
     system "windows"
-    architecture "x32"
+    architecture "x86"
 
 	includedirs({
 		"include",
@@ -43,7 +43,7 @@ project "SimuladorECR"
   filter  "platforms:Win64"
     defines{"WIN64"}
     system "windows"
-    architecture "x64"
+    architecture "x86_64"
 
 	includedirs({
 		"include",
@@ -55,7 +55,7 @@ project "SimuladorECR"
 		os.getenv("WXWIN").."/lib/vc_lib"
 	})
 
-  filter  "platforms:Linux"
+  filter "platforms:Linux"
     defines{"LINUX"}
     system "linux"
 

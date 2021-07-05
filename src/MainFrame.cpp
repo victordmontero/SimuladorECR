@@ -54,7 +54,7 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& 
 
 	wxIntegerValidator<short> validator;
 
-	txtIP = new wxTextCtrl(this, ID_IPTXT, "192.168.3.63", wxPoint(10, 20), wxSize(100, 20));
+	txtIP = new wxTextCtrl(this, ID_IPTXT, "192.168.137.6", wxPoint(10, 20), wxSize(100, 20));
 	txtPort = new wxTextCtrl(this, ID_PORTTXT, "2018", wxPoint(110, 20), wxSize(100, 20), 0L, validator);
 	txtFolio = new wxTextCtrl(this, ID_FOLIO_NO, "00000001", wxPoint(210, 20), wxSize(100, 20));
 	txtResult = new wxTextCtrl(this, wxID_ANY, "Results", wxPoint(10, 50), wxSize(600, 300), wxTE_MULTILINE | wxTE_READONLY | wxTE_PROCESS_TAB);
@@ -620,12 +620,12 @@ void MainFrame::OnSendPreComp(wxCommandEvent& event)
 	memset(messageBuf, 0x00, sizeof(messageBuf));
 
 	vec2.clear();
-	if (txtFolio->GetValue().Length() == 8)
-		vec2.push_back("PR01");
-	else
-		vec2.push_back("PR05");
-	vec2.push_back(txtFolio->GetValue());
-	vec2.push_back("000000000500");
+	vec2.push_back("CN00");
+	//vec2.push_back(txtFolio->GetValue());
+	vec2.push_back("000000000110");
+	vec2.push_back("000000000000");
+	vec2.push_back("000000000000");
+	vec2.push_back("123456");
 
 	int len = 0;
 	for (std::vector<wxString>::iterator it = vec2.begin(); it != vec2.end(); it++)
