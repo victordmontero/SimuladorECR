@@ -16,9 +16,7 @@ pipeline {
 			steps {
 				sh 'echo "Generating makefiles..."'
 				sh './premake5 gmake2'
-				sh 'cd proj_gmake2'
 				sh 'make config=debug_linux'
-				sh 'cd ..'
 				archiveArtifacts artifacts: 'bin/Debug/*', fingerprint: true
 			}
 		}

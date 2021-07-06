@@ -2,7 +2,6 @@
 workspace "SimuladorECR"
    configurations { "Debug", "Release" }
    platforms { "Win32", "Win64", "Linux" }
-   location "proj_%{_ACTION}"
 
 project "SimuladorECR"
    kind "WindowedApp"
