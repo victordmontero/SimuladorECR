@@ -32,12 +32,12 @@ project "SimuladorECR"
 
 	includedirs({
 		"include",
-		os.getenv("WXWIN").."/include",
-		os.getenv("WXWIN").."/include/msvc"
+		-- os.getenv("WXWIN").."/include",
+		-- os.getenv("WXWIN").."/include/msvc"
 	})
 	
 	libdirs({
-		os.getenv("WXWIN").."/lib/vc_lib"
+		-- os.getenv("WXWIN").."/lib/vc_lib"
 	})
 
   filter  "platforms:Win64"
@@ -47,12 +47,12 @@ project "SimuladorECR"
 
 	includedirs({
 		"include",
-		os.getenv("WXWIN").."/include",
-		os.getenv("WXWIN").."/include/msvc"
+		-- os.getenv("WXWIN").."/include",
+		-- os.getenv("WXWIN").."/include/msvc"
 	})
 	
 	libdirs({
-		os.getenv("WXWIN").."/lib/vc_lib"
+		-- os.getenv("WXWIN").."/lib/vc_lib"
 	})
 
   filter "platforms:Linux"
