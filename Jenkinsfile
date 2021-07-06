@@ -9,7 +9,7 @@ pipeline {
 				sh 'chmod +x premake5'
 				sh 'echo "Installing wxWidget..."'
 				sh 'apt-get update'
-				sh 'apt-get install wx3.0-headers libwxgtk3.0-* -y'
+				sh 'apt-get install wx3.0-headers libwxgtk3.0-* make build-essential -y'
 			}
 		}
 		stage('Build') {
