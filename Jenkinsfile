@@ -15,7 +15,7 @@ pipeline {
 		stage('Build') {
 			steps {
 				sh 'echo "Generating makefiles..."'
-				sh 'premake5 gmake2'
+				sh './premake5 gmake2'
 				sh 'pushd proj_gmake2'
 				sh 'make config=debug_linux clean all'
 				sh 'popd'
