@@ -34,6 +34,14 @@ SOCKET SetAsServer(SOCKET* sock, std::ostream&);
 MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& size)
 	:wxFrame(NULL, wxID_ANY, title, point, size)
 {
+	this->btnSend = NULL;
+	this->txtIP = NULL;
+	this->txtPort = NULL;
+	this->txtFolio = NULL;
+	this->txtResult = NULL;
+	this->toolBar = NULL;
+	this->server = NULL;
+
 	wxMenuBar* menuBar = new wxMenuBar;
 	toolBar = this->CreateToolBar(wxTB_HORIZONTAL, wxID_ANY);
 
