@@ -15,43 +15,49 @@ project "SimuladorECR"
 		"src/**.cpp",
 		"**.lua"
 	})
+	
+	defines{
+		"__WXMSW__"
+	}
 
   filter "configurations:Debug"
-    defines { "DEBUG" }
+    defines { "DEBUG", "_DEBUG" }
     symbols "On"
 
   filter "configurations:Release"
     defines { "NDEBUG" }
     optimize "On"
 
-  filter  "platforms:Win32"
+  filter "platforms:Win32"
     defines{"WIN32"}
     system "windows"
     architecture "x86"
+	staticruntime "on"
 
 	includedirs({
 		"include",
-		-- os.getenv("WXWIN").."/include",
-		-- os.getenv("WXWIN").."/include/msvc"
+		"../wxWidgets-3.2.1/include",
+		"../wxWidgets-3.2.1/include/msvc"
 	})
 	
 	libdirs({
-		-- os.getenv("WXWIN").."/lib/vc_lib"
+		"../wxWidgets-3.2.1/lib/vc_lib_mt"
 	})
 
-  filter  "platforms:Win64"
+  filter "platforms:Win64"
     defines{"WIN64"}
     system "windows"
     architecture "x86_64"
+	staticruntime "on"
 
 	includedirs({
 		"include",
-		-- os.getenv("WXWIN").."/include",
-		-- os.getenv("WXWIN").."/include/msvc"
+		"../wxWidgets-3.2.1/include",
+		"../wxWidgets-3.2.1/include/msvc"
 	})
 	
 	libdirs({
-		-- os.getenv("WXWIN").."/lib/vc_lib"
+		"../wxWidgets-3.2.1/lib/vc_x64_lib_st"
 	})
 
   filter "platforms:Linux"
