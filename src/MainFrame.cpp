@@ -160,15 +160,10 @@ void MainFrame::OnServerEvent(wxSocketEvent& evt)
 
 	wxSocketBase* sock = server->Accept(false);
 
-	/*sock->SetEventHandler(*this, ID_CONNECTED);
-	sock->SetNotify(wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-	sock->Notify(true);*/
-
 	sock->GetLocal(clientAddr);
 	logStream << "Connected Peer: [" << clientAddr.IPAddress() << "]" << '\n';
 
 	sock->Read(buf, 1);
-	//logStream << "Received " << wxString(buf).Printf("%x", buf[0]) << '\n';
 	hexDump("Received", buf, 1, logStream);
 
 	buf[0] = EOM;
@@ -197,7 +192,6 @@ void MainFrame::OnServerEvent(wxSocketEvent& evt)
 	buf[0] = 0x00;
 	buf[1] = 0x00;
 	sock->Read(buf, 1);
-	//logStream << "Received " << wxString(buf).Printf("%X", buf[0]) << '\n';
 	hexDump("Received", buf, 1, logStream);
 
 	buf[0] = EOT;
@@ -208,7 +202,6 @@ void MainFrame::OnServerEvent(wxSocketEvent& evt)
 	buf[0] = 0x00;
 	buf[1] = 0x00;
 	sock->Read(buf, 1);
-	//logStream << "Received " << wxString(buf).Printf("%X", buf[0]) << '\n';
 	hexDump("Received", buf, 1, logStream);
 
 	sock->Destroy();
@@ -712,8 +705,6 @@ SOCKET doHanshake(SOCKET* sock, const std::string& posIp, std::ostream& logout)
 	if (responseSize <= 0)
 		return dieWithError("Error sending ACK", *sock, logout);
 
-	//hexDump("Received ACK", response, responseSize, logStream);
-
 	rc = reconnect(sock, posIp, logout);
 
 	if (rc < 0)
@@ -735,8 +726,6 @@ SOCKET doHanshake(SOCKET* sock, const std::string& posIp, std::ostream& logout)
 
 	if (responseSize <= 0)
 		return dieWithError("Error sending ENQ", new_sock, logout);
-
-	//hexDump("Received ENQ", response, responseSize, logStream);
 
 	return new_sock;
 }
@@ -769,8 +758,6 @@ void closeHanshake(SOCKET new_sock, std::ostream& logout)
 
 	if (responseSize <= 0)
 		dieWithError("Error sending EOM", new_sock, logout);
-
-	//hexDump("Received EOM", response, responseSize);
 }
 
 int reconnect(SOCKET* sock, const std::string& posIp, std::ostream& logout)
@@ -882,7 +869,6 @@ void hexDump(const char* desc, const void* addr, const int len, std::ostream& lo
 
 	// Output description if given.
 	if (desc != NULL)
-		//printf("%s:\n", desc);
 		logStream << desc << ":\n";
 
 	if (len == 0)
@@ -907,29 +893,17 @@ void hexDump(const char* desc, const void* addr, const int len, std::ostream& lo
 		{
 			// Just don't print ASCII for the zeroth line.
 			if (i != 0) {
-				//printf("  %s\n", buff);
-				/*logStream << "  " << buff << '\n';*/
-
 				sprintf_s(temp, "  %s\n", buff);
 				logStream << temp;
 			}
 
 			// Output the offset.
-			//printf("  %04x ", i);
-			/*logStream << "  ";
-			logStream
-				<< std::setbase(std::ios_base::hex)
-				<< std::setfill('0')
-				<< std::setw(4)
-				<< i;
-			logStream << " ";*/
 
 			sprintf_s(temp, "  %04x ", i);
 			logStream << temp;
 		}
 
 		// Now the hex code for the specific character.
-		//printf(" %02x", pc[i]);
 		sprintf_s(temp, " %02x", pc[i]);
 		logStream << temp;
 
