@@ -59,6 +59,20 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& 
 	txtFolio = new wxTextCtrl(this, ID_FOLIO_NO, "00000001", wxPoint(210, 20), wxSize(100, 20));
 	txtResult = new wxTextCtrl(this, wxID_ANY, "Results", wxPoint(10, 50), wxSize(600, 300), wxTE_MULTILINE | wxTE_READONLY | wxTE_PROCESS_TAB);
 
+	wxBoxSizer* bSizer2 = new wxBoxSizer(wxVERTICAL);
+	bSizer2->Add(txtResult, 1, wxEXPAND | wxALL, 5);
+
+	wxBoxSizer* bSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	bSizer1->Add(txtIP, 1, wxALL, 5);
+	bSizer1->Add(txtPort, 1, wxALL, 5);
+	bSizer1->Add(txtFolio, 1, wxALL, 5);
+
+	wxBoxSizer* cSizer = new wxBoxSizer(wxVERTICAL);
+	cSizer->Add(bSizer1, 0, wxEXPAND);
+	cSizer->Add(bSizer2, 1, wxEXPAND);
+
+	SetSizerAndFit(cSizer);
+
 	wxButton* btnStartServer = new wxButton(toolBar, ID_START_SERVER, "Escuchar", wxDefaultPosition, wxSize(100, 20));
 	wxButton* btnStopServer = new wxButton(toolBar, ID_STOP_SERVER, "Detener", wxDefaultPosition, wxSize(100, 20));
 	wxButton* btnSendPreComp = new wxButton(toolBar, ID_SEND_PRECOMP, "Send PreComp", wxDefaultPosition, wxSize(100, 20));
