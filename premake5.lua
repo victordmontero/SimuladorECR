@@ -15,10 +15,6 @@ project "SimuladorECR"
 		"src/**.cpp",
 		"**.lua"
 	})
-	
-	defines{
-		"__WXMSW__"
-	}
 
   filter "configurations:Debug"
     defines { "DEBUG", "_DEBUG" }
@@ -29,7 +25,7 @@ project "SimuladorECR"
     optimize "On"
 
   filter "platforms:Win32"
-    defines{"WIN32"}
+    defines{"__WXMSW__","WIN32"}
     system "windows"
     architecture "x86"
 	staticruntime "on"
@@ -45,7 +41,7 @@ project "SimuladorECR"
 	})
 
   filter "platforms:Win64"
-    defines{"WIN64"}
+    defines{"__WXMSW__","WIN64"}
     system "windows"
     architecture "x86_64"
 	staticruntime "on"
