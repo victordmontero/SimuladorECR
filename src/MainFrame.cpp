@@ -62,10 +62,15 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& 
 
 	wxIntegerValidator<short> validator;
 
-	txtIP = new wxTextCtrl(this, ID_IPTXT, "192.168.137.6", wxPoint(10, 20), wxSize(100, 20));
-	txtPort = new wxTextCtrl(this, ID_PORTTXT, "2018", wxPoint(110, 20), wxSize(100, 20), 0L, validator);
-	txtFolio = new wxTextCtrl(this, ID_FOLIO_NO, "00000001", wxPoint(210, 20), wxSize(100, 20));
-	txtResult = new wxTextCtrl(this, wxID_ANY, "Results", wxPoint(10, 50), wxSize(600, 300), wxTE_MULTILINE | wxTE_READONLY | wxTE_PROCESS_TAB);
+	wxIPV4address address;
+	wxString ipv4Address = address.IPAddress();
+
+	wxPanel* panel = new wxPanel(this);
+
+	txtIP = new wxTextCtrl(panel, ID_IPTXT, ipv4Address, wxPoint(10, 20), wxSize(100, 20));
+	txtPort = new wxTextCtrl(panel, ID_PORTTXT, "2018", wxPoint(110, 20), wxSize(100, 20), 0L, validator);
+	txtFolio = new wxTextCtrl(panel, ID_FOLIO_NO, "00000001", wxPoint(210, 20), wxSize(100, 20));
+	txtResult = new wxTextCtrl(panel, wxID_ANY, "Results", wxPoint(10, 50), wxSize(600, 300), wxTE_MULTILINE | wxTE_READONLY | wxTE_PROCESS_TAB);
 
 	wxBoxSizer* bSizer2 = new wxBoxSizer(wxVERTICAL);
 	bSizer2->Add(txtResult, 1, wxEXPAND | wxALL, 5);
@@ -79,7 +84,7 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& 
 	cSizer->Add(bSizer1, 0, wxEXPAND);
 	cSizer->Add(bSizer2, 1, wxEXPAND);
 
-	SetSizerAndFit(cSizer);
+	panel->SetSizerAndFit(cSizer);
 
 	wxButton* btnStartServer = new wxButton(toolBar, ID_START_SERVER, "Escuchar", wxDefaultPosition, wxSize(100, 20));
 	wxButton* btnStopServer = new wxButton(toolBar, ID_STOP_SERVER, "Detener", wxDefaultPosition, wxSize(100, 20));
@@ -115,8 +120,10 @@ void MainFrame::OnExit(wxCommandEvent& event)
 
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
-	wxMessageBox("Simulador Globo",
-		"About SimuladorECR", wxOK | wxICON_INFORMATION);
+	wxMessageBox(
+		"Simulador Globo",
+		"About SimuladorECR",
+		wxOK | wxICON_INFORMATION);
 
 	event.Skip();
 }
@@ -147,7 +154,9 @@ void MainFrame::OnStartServer(wxCommandEvent& event)
 		server->Destroy();
 		if (server->Error())
 		{
-			SetStatusText(wxT("Socket Error: %s", SocketErrorString(server->LastError())));
+			wxString msg;
+			msg.Printf("Socket Error: %s", SocketErrorString(server->LastError()));
+			SetStatusText(msg);
 		}
 		return;
 	}
@@ -884,8 +893,8 @@ int dieWithError(const char* message, SOCKET sock, std::ostream& logout)
 void hexDump(const char* desc, const void* addr, const int len, std::ostream& logStream)
 {
 	int i;
-	unsigned char buff[17];
-	const unsigned char* pc = (const unsigned char*)addr;
+	unsigned char buff[17] = { 0 };
+	const unsigned char* pc = static_cast<const unsigned char*>(addr);
 
 	char temp[256] = { 0 };
 
@@ -895,13 +904,11 @@ void hexDump(const char* desc, const void* addr, const int len, std::ostream& lo
 
 	if (len == 0)
 	{
-		printf("  ZERO LENGTH\n");
 		logStream << "  ZERO LENGTH\n";
 		return;
 	}
 	if (len < 0)
 	{
-		printf("  NEGATIVE LENGTH: %i\n", len);
 		logStream << "  NEGATIVE LENGTH: " << len << '\n';
 		return;
 	}
@@ -915,18 +922,18 @@ void hexDump(const char* desc, const void* addr, const int len, std::ostream& lo
 		{
 			// Just don't print ASCII for the zeroth line.
 			if (i != 0) {
-				sprintf_s(temp, "  %s\n", buff);
+				wxSprintf(temp, "  %s\n", buff);
 				logStream << temp;
 			}
 
 			// Output the offset.
 
-			sprintf_s(temp, "  %04x ", i);
+			wxSprintf(temp, "  %04x ", i);
 			logStream << temp;
 		}
 
 		// Now the hex code for the specific character.
-		sprintf_s(temp, " %02x", pc[i]);
+		wxSprintf(temp," %02x", pc[i]);
 		logStream << temp;
 
 		// And store a printable ASCII character for later.
@@ -940,12 +947,10 @@ void hexDump(const char* desc, const void* addr, const int len, std::ostream& lo
 	// Pad out last line if not exactly 16 characters.
 	while ((i % 16) != 0)
 	{
-		printf("   ");
 		logStream << "   ";
 		i++;
 	}
 
 	// And print the final ASCII bit.
-	printf("  %s\n", buff);
 	logStream << "  " << buff << '\n';
 }
