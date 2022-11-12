@@ -15,6 +15,8 @@ project "SimuladorECR"
 		"src/**.cpp",
 		"**.lua"
 	})
+	
+	defines{"wxCFG=_st"}
 
   filter "configurations:Debug"
     defines { "DEBUG", "_DEBUG" }
@@ -37,7 +39,7 @@ project "SimuladorECR"
 	})
 	
 	libdirs({
-		"../wxWidgets-3.2.1/lib/vc_lib_mt"
+		"../wxWidgets-3.2.1/lib/vc_lib_st"
 	})
 
   filter "platforms:Win64"
