@@ -41,14 +41,14 @@ public:
 	MainFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
 	~MainFrame();
 
-	wxButton* btnSend = NULL;
-	wxTextEntry* txtIP = NULL;
-	wxTextEntry* txtPort = NULL;
-	wxTextEntry* txtFolio = NULL;
-	wxTextCtrl* txtResult = NULL;
-	wxToolBar* toolBar = NULL;
+	wxButton* btnSend;
+	wxTextCtrl* txtIP;
+	wxTextCtrl* txtPort;
+	wxTextCtrl* txtFolio;
+	wxTextCtrl* txtResult;
+	wxToolBar* toolBar;
 
-	wxSocketServer* server = NULL;
+	wxSocketServer* server;
 };
 
 #endif //_MAIN_H_

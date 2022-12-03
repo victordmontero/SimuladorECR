@@ -2,7 +2,7 @@
 
 bool App::OnInit()
 {
-    MainFrame* frame = new MainFrame("Simulador ECR v0.1",wxPoint(25,25),wxSize(640,480));
+    MainFrame* frame = new MainFrame("Simulador ECR v0.2",wxPoint(25,25),wxSize(640,480));
     frame->Show(true);
     return true;
 }

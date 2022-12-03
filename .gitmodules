@@ -1,0 +1,5 @@
+[submodule "thirdparty/wxWidgets"]
+	path = thirdparty/wxWidgets
+	url = git@github.com:wxWidgets/wxWidgets.git
+[submodule "thirdparty/wxWidgets/"]
+	branch = 3.2
