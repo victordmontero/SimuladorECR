@@ -68,8 +68,8 @@ project "SimuladorECR"
 		"include"
 	})
 
-	buildoptions{"`wx-config --cxxflags`"}
-	linkoptions{"`wx-config --libs`"}
+	buildoptions{"`thirdparty/wxWidgets/wx-config --cxxflags`"}
+	linkoptions{"`thirdparty/wxWidgets/wx-config --libs`"}
 
 project "wxWidgets"
    kind "Makefile"
@@ -90,13 +90,11 @@ project "wxWidgets"
    filter "platforms:Win32"
    
 	   buildcommands {
-		  "%comspec% /k \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat\"",
 		  "{CHDIR} %{prj.location}build/msw",
 		  "nmake /f makefile.vc BUILD=%{cfg.buildcfg:lower()} RUNTIME_LIBS=static CFG=_st TARGET_CPU=X86"
 	   }
    
 	   rebuildcommands {
-		  "%comspec% /k \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat\"",
 		  "{CHDIR} %{prj.location}build/msw",
 		  "nmake /f makefile.vc BUILD=%{cfg.buildcfg:lower()} RUNTIME_LIBS=static CFG=_st TARGET_CPU=X86"
 	   }
@@ -104,13 +102,11 @@ project "wxWidgets"
    filter "platforms:Win64"
    
 	   buildcommands {
-		  "%comspec% /k \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
 		  "{CHDIR} %{prj.location}build/msw",
 		  "nmake /f makefile.vc BUILD=%{cfg.buildcfg:lower()} RUNTIME_LIBS=static CFG=_st TARGET_CPU=X64"
 	   }
    
 	   rebuildcommands {
-		  "%comspec% /k \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
 		  "{CHDIR} %{prj.location}build/msw",
 		  "nmake /f makefile.vc BUILD=%{cfg.buildcfg:lower()} RUNTIME_LIBS=static CFG=_st TARGET_CPU=X64"
 	   }
@@ -120,11 +116,11 @@ project "wxWidgets"
 		buildcommands {
 		  "{CHDIR} %{prj.location}",
 		  "./configure --disable-shared",
-		  "make -j$(nproc)"
+		  "make -j$(nproc --all)"
 	   }
    
 	   rebuildcommands {
 		  "{CHDIR} %{prj.location}",
 		  "./configure --disable-shared",
-		  "make -j$(nproc)"
+		  "make -j$(nproc --all)"
 	   }
