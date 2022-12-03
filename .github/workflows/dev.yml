@@ -16,7 +16,9 @@ jobs:
       with:
         submodules: 'recursive'
     - name: Install premake5
-      run: apt-get install -y premake
+      run: |
+        sudo apt-get update
+        sudo apt-get install premake
     - name: Generating makefiles
       run: premake5 gmake2
     - name: Building..
