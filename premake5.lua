@@ -83,10 +83,6 @@ project "wxWidgets"
 	   
    }
    
-   prebuildcommands {
-		"git submodule update --init --recursive --remote %{prj.location}"
-   }
-   
    filter "platforms:Win32"
    
 	   buildcommands {

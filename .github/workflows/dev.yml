@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: true
     - name: Install premake5
       run: |
         apt-get update
@@ -26,6 +28,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+            submodules: true
       - name: Install premake5
         run: choco install premake5 --pre
       - name: Generating Visual Studio Solution
