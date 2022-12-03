@@ -16,7 +16,7 @@ jobs:
     - name: Fetching submodules of submodule
       uses: actions/checkout@v3
       with:
-        repository: git@github.com:wxWidgets/wxWidgets.git
+        repository: https://github.com/wxWidgets/wxWidgets.git
         ref: 3.2
         path: thirdparty/wxWidgets
     - name: Install premake5
@@ -35,7 +35,7 @@ jobs:
       - name: Fetching submodules of submodule
         uses: actions/checkout@v3
         with:
-            repository: git@github.com:wxWidgets/wxWidgets.git
+            repository: https://github.com/wxWidgets/wxWidgets.git
             ref: 3.2
             path: thirdparty/wxWidgets
       - name: Install premake5
