@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install premake5
-      run:
+      run: |
         apt-get update
         apt-get install -y premake
     - name: Generating makefiles
@@ -30,10 +30,14 @@ jobs:
         run: choco install premake5 --pre
       - name: Generating Visual Studio Solution
         run: premake5 vs2019
-      - name: Add msbuild to PATH
+      - name: Add msbuild (x86) to PATH
         uses: microsoft/setup-msbuild@v1.1
       - name: Build app for release 32bits
         run: msbuild SimuladorECR.sln -t:rebuild -verbosity:diag -property:Configuration=Release -property:Platform=Win32
+      - name: Add msbuild (x64) to PATH
+        uses: microsoft/setup-msbuild@v1.1
+        with:
+          msbuild-architecture: x64
       - name: Build app for release 64bits
         run: msbuild SimuladorECR.sln -t:rebuild -verbosity:diag -property:Configuration=Release -property:Platform=Win64
-      
+        
