@@ -16,13 +16,14 @@ jobs:
       with:
         submodules: 'recursive'
     - name: Install premake5
-      run: |
-        apt-get update
-        apt-get install -y premake
+      run: apt-get install -y premake
     - name: Generating makefiles
       run: premake5 gmake2
     - name: Building..
       run: make -j$(nproc --all) config=release_linux
+    - uses: actions/upload-artifact@v3
+      with:
+        path: bin/Linux/Release/SimuladorECR
   windows_job:
     name: Builiding for Windows
     runs-on: windows-latest
@@ -44,4 +45,11 @@ jobs:
           msbuild-architecture: x64
       - name: Build app for release 64bits
         run: msbuild SimuladorECR.sln -t:rebuild -verbosity:diag -property:Configuration=Release -property:Platform=Win64
+      - uses: actions/upload-artifact@v3
+        with:
+            path: bin/Win32/Release/SimuladorECR.exe
+      - uses: actions/upload-artifact@v3
+        with:
+            path: bin/Win64/Release/SimuladorECR.exe
+       
         

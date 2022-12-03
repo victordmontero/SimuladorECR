@@ -6,7 +6,7 @@ workspace "SimuladorECR"
 project "SimuladorECR"
    kind "WindowedApp"
    language "C++"
-   targetdir "bin/%{cfg.buildcfg}"
+   targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}"
    objdir "obj"
    
    dependson {"wxWidgets"}
