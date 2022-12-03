@@ -11,8 +11,6 @@
 #include <string>
 #include <cstdlib>
 #include <cstdio>
-#include <windows.h>
-#include <winsock.h>
 #include <vector>
 
 #define EOT 0x04
@@ -22,14 +20,9 @@
 #define SYN 0x16
 #define EOM 0x19
 
-static int dieWithError(const char* message, SOCKET sock, std::ostream&);
 static void hexDump(const char* desc, const void* addr, const int len, std::ostream& logStream);
-static int reconnect(SOCKET* sock, const std::string&, std::ostream&);
-static SOCKET doHanshake(SOCKET* sock, const std::string&, std::ostream&);
-static void closeHanshake(SOCKET new_sock, std::ostream&);
 static void parseMsg(const char* message, unsigned length, std::vector<char*>& vec);
 
-SOCKET SetAsServer(SOCKET* sock, std::ostream&);
 
 MainFrame::MainFrame(const wxString& title, const wxPoint& point, const wxSize& size)
 	:wxFrame(NULL, wxID_ANY, title, point, size)
@@ -707,187 +700,6 @@ static void parseMsg(const char* message, unsigned length, std::vector<char*>& v
 		vec.push_back(tok);
 		tok = std::strtok(NULL, delim);
 	}
-}
-
-SOCKET doHanshake(SOCKET* sock, const std::string& posIp, std::ostream& logout)
-{
-	int rc = reconnect((SOCKET*)sock, posIp, logout);
-
-	if (rc < 0)
-		return rc;
-
-	char request = 0;
-	int responseSize = 0;
-	char response[512] = { 0 };
-
-	logout << "Sending ENQ" << std::endl;
-
-	request = ENQ;
-	responseSize = send(*sock, &request, 1, 0);
-
-	if (responseSize <= 0)
-		return dieWithError("Error Sending ENQ", *sock, logout);
-
-
-	logout << "Receiving ACK" << std::endl;
-
-	responseSize = recv(*sock, (char*)response, sizeof(response), 0);
-
-	if (responseSize <= 0)
-		return dieWithError("Error sending ACK", *sock, logout);
-
-	rc = reconnect(sock, posIp, logout);
-
-	if (rc < 0)
-		return rc;
-
-	logout << "Sending SYN" << std::endl;
-
-	request = SYN;
-	responseSize = send(*sock, &request, 1, 0);
-
-	if (responseSize <= 0)
-		return dieWithError("Error Sending SYN", *sock, logout);
-
-	int new_sock = SetAsServer(sock, logout);
-
-	logout << "Receiving ENQ" << std::endl;
-
-	responseSize = recv(new_sock, (char*)response, sizeof(response), 0);
-
-	if (responseSize <= 0)
-		return dieWithError("Error sending ENQ", new_sock, logout);
-
-	return new_sock;
-}
-
-void closeHanshake(SOCKET new_sock, std::ostream& logout)
-{
-	char response[257] = { 0 };
-	char request = 0;
-	int responseSize = 0;
-
-	logout << "Sending ACK" << std::endl;
-
-	request = ACK;
-	responseSize = send(new_sock, &request, 1, 0);
-
-	if (responseSize < 0)
-		dieWithError("Error sending ACK", new_sock, logout);
-
-	logout << "Receiving EOT" << std::endl;
-
-	responseSize = recv(new_sock, (char*)response, 1, 0);
-
-	if (responseSize <= 0)
-		dieWithError("Error sending EOT", new_sock, logout);
-
-
-	logout << "Receiving EOM" << std::endl;
-
-	responseSize = recv(new_sock, (char*)response, 1, 0);
-
-	if (responseSize <= 0)
-		dieWithError("Error sending EOM", new_sock, logout);
-}
-
-int reconnect(SOCKET* sock, const std::string& posIp, std::ostream& logout)
-{
-
-	if (*sock >= 0)
-	{
-		closesocket(*sock);
-		*sock = -1;
-	}
-
-	struct sockaddr_in clientSockAddr;
-	const int posPort = 7060;
-	int responseSize = 0;
-	char request = 0;
-
-	*sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if (*sock < 0)
-		return dieWithError("Error creating Socket", *sock, logout);
-
-	memset(&clientSockAddr, 0x00, sizeof(clientSockAddr));
-	clientSockAddr.sin_family = AF_INET;
-	clientSockAddr.sin_addr.s_addr = inet_addr(posIp.c_str());
-	clientSockAddr.sin_port = htons(posPort);
-
-	logout << "Connecting to "
-		<< inet_ntoa(clientSockAddr.sin_addr) << ":"
-		<< ntohs(clientSockAddr.sin_port) << std::endl;
-
-	responseSize = connect(*sock, (struct sockaddr*) & clientSockAddr, sizeof(clientSockAddr));
-
-	if (responseSize < 0)
-	{
-		return dieWithError("Error connecting", *sock, logout);
-	}
-}
-
-SOCKET SetAsServer(SOCKET* sock, std::ostream& logout)
-{
-	sockaddr_in sockAddr, clientSockAddr;
-	const int bindPort = 2018;
-	int addresslen = sizeof(sockaddr);
-
-	memset(&sockAddr, 0x00, sizeof(sockAddr));
-	memset(&clientSockAddr, 0x00, sizeof(clientSockAddr));
-
-	sockAddr.sin_family = AF_INET;
-	sockAddr.sin_port = htons(bindPort);
-	sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	SOCKET new_sock;
-	if (sock >= 0)
-	{
-		logout << "Closing...." << std::endl;
-		closesocket(*sock);
-		*sock = -1;
-	}
-
-	std::cout << "Setting as Server" << std::endl;
-	*sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if (*sock < 0)
-	{
-		logout << "Error al Crear el Socket: " << WSAGetLastError() << std::endl;
-		WSACleanup();
-		return 1;
-	}
-
-	if (bind(*sock, (struct sockaddr*) & sockAddr, sizeof(sockAddr)) < 0)
-	{
-		logout << "Error al conectar: " << WSAGetLastError() << std::endl;
-		return 1;
-	}
-
-	if (listen(*sock, 3) < 0)
-	{
-		logout << "Error al escuchar " << WSAGetLastError() << std::endl;
-		return 1;
-	}
-
-	std::cout << "Acepting...." << std::endl;
-	if ((new_sock = accept(*sock, (sockaddr*)&clientSockAddr, &addresslen)) < 0)
-	{
-		logout << "Error al aceptar " << WSAGetLastError() << std::endl;
-		if (WSAGetLastError() != WSAEWOULDBLOCK)
-			return 1;
-	}
-
-	return new_sock;
-}
-
-int dieWithError(const char* message, SOCKET sock, std::ostream& logout)
-{
-	logout << message << ":" << WSAGetLastError() << std::endl;
-	WSACleanup();
-	closesocket(sock);
-	sock = -1;
-	return sock;
 }
 
 void hexDump(const char* desc, const void* addr, const int len, std::ostream& logStream)
