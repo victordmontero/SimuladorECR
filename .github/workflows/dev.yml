@@ -14,7 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Fetching submodules of submodule
-      run: git submodule update --force --init --recursive --remote thirdparty/wxWidgets
+    - uses: actions/checkout@v3
+      with:
+        repository: git@github.com:wxWidgets/wxWidgets.git
+        ref: 3.2
+        path: thirdparty/wxWidgets
     - name: Install premake5
       run: |
         apt-get update
@@ -29,7 +33,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Fetching submodules of submodule
-        run: git submodule update --force --init --recursive --remote thirdparty/wxWidgets
+      - uses: actions/checkout@v3
+        with:
+            repository: git@github.com:wxWidgets/wxWidgets.git
+            ref: 3.2
+            path: thirdparty/wxWidgets
       - name: Install premake5
         run: choco install premake5 --pre
       - name: Generating Visual Studio Solution
