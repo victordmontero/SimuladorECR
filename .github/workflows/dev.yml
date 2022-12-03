@@ -1,0 +1,39 @@
+name: Build CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  linux_job:
+    name: Building for Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install premake5
+      run:
+        apt-get update
+        apt-get install -y premake
+    - name: Generating makefiles
+      run: premake5 gmake2
+    - name: Building..
+      run: make -j$(nproc --all) config=release_linux
+  windows_job:
+    name: Builiding for Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install premake5
+        run: choco install premake5 --pre
+      - name: Generating Visual Studio Solution
+        run: premake5 vs2019
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Build app for release 32bits
+        run: msbuild SimuladorECR.sln -t:rebuild -verbosity:diag -property:Configuration=Release -property:Platform=Win32
+      - name: Build app for release 64bits
+        run: msbuild SimuladorECR.sln -t:rebuild -verbosity:diag -property:Configuration=Release -property:Platform=Win64
+      
