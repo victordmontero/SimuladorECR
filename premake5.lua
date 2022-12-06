@@ -112,11 +112,11 @@ project "wxWidgets"
 		buildcommands {
 		  "{CHDIR} %{prj.location}",
 		  "./configure --disable-shared",
-		  "make -j$(nproc --ignore=2)"
+		  "make"
 	   }
    
 	   rebuildcommands {
 		  "{CHDIR} %{prj.location}",
 		  "./configure --disable-shared",
-		  "make -j$(nproc --ignore=2)"
+		  "make"
 	   }
