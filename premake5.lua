@@ -6,7 +6,7 @@ workspace "SimuladorECR"
 project "SimuladorECR"
    kind "WindowedApp"
    language "C++"
-   targetdir "bin/%{cfg.buildcfg}"
+   targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}"
    objdir "obj"
    
    dependson {"wxWidgets"}
@@ -112,11 +112,11 @@ project "wxWidgets"
 		buildcommands {
 		  "{CHDIR} %{prj.location}",
 		  "./configure --disable-shared",
-		  "make -j$(nproc --all)"
+		  "make"
 	   }
    
 	   rebuildcommands {
 		  "{CHDIR} %{prj.location}",
 		  "./configure --disable-shared",
-		  "make -j$(nproc --all)"
+		  "make"
 	   }
